@@ -1,0 +1,30 @@
+import pandas as pd
+import requests
+from datetime import datetime
+import os
+
+def get_rates():
+    # 1. 抓取台灣銀行 USD/TWD (範例網址)
+    tw_url = "https://rate.bot.com.tw/xrt?Lang=zh-TW"
+    tw_data = pd.read_html(tw_url)[0] # 抓取頁面第一個表格
+    usd_twd = tw_data.iloc[0, 12] # 根據台銀表格索引取得賣出匯率
+
+    # 2. 抓取 HSBC Malaysia MYR/USD (需根據該網站結構調整)
+    # 注意：HSBC 網站若有 JavaScript 渲染，可能需要更複雜的處理，或尋找其 API 節點
+    myr_usd = 0.24 # 此處為假設數值，實際需解析 HTML
+    
+    return usd_twd, myr_usd
+
+def save_to_csv(usd_twd, myr_usd):
+    file_name = "exchange_rates.csv"
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_data = pd.DataFrame([[now, usd_twd, myr_usd]], columns=["Date", "USD_TWD", "MYR_USD"])
+    
+    if os.path.exists(file_name):
+        new_data.to_csv(file_name, mode='a', header=False, index=False)
+    else:
+        new_data.to_csv(file_name, index=False)
+
+if __name__ == "__main__":
+    twd, myr = get_rates()
+    save_to_csv(twd, myr)
