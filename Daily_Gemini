@@ -1,0 +1,32 @@
+name: Daily Exchange Rate Scraper
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天國際標準時間 00:00 執行 (台灣/馬來西亞上午 8:00)
+  workflow_dispatch: # 允許手動觸發測試
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v3
+
+      - name: 設定 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 安裝套件
+        run: pip install pandas lxml requests beautifulsoup4
+
+      - name: 執行爬蟲
+        run: python scraper.py
+
+      - name: 提交並推送 CSV
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add exchange_rates.csv
+          git commit -m "Update exchange rates $(date)" || exit 0
+          git push
