@@ -17,7 +17,8 @@ def get_bot_rate():
 def get_hsbc_rate():
     """抓取 HSBC Malaysia MYR/USD 匯率"""
     # 備註：銀行官網常變動，若失效需檢查 HTML 結構
-    url = "https://www.hsbc.com.my/investments/market-information/foreign-exchange-rates/"
+    # url = "https://www.hsbc.com.my/investments/market-information/foreign-exchange-rates/"
+    url = "https://www.hsbc.com.my/investments/products/foreign-exchange/currency-rate/"
     header = {'User-Agent': 'Mozilla/5.0'}
     # 這裡建議使用穩定 API 或解析其表格，暫用範例邏輯
     # 若 HSBC 難爬，建議改用匯率 API
