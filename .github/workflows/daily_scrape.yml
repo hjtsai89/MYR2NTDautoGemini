@@ -2,13 +2,9 @@ name: Daily Exchange Rate Scraper
 
 on:
   schedule:
-    # 台灣時間 09:30 AM (UTC 01:30)
+    # 台灣時間 09:30 AM
     - cron: '30 1 * * *'
   workflow_dispatch:
-
-env:
-  # 強制將 JavaScript Actions 提升至 Node24 執行
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -18,15 +14,18 @@ jobs:
       contents: write
 
     steps:
-      # 升級至 v4 (確保使用最新修補版本)
+      # 關鍵修正 1: 升級到 actions/checkout@v4.2.2 (或更高) 
+      # 某些舊版 v4 仍會觸發警告，確保使用最新小版本
       - name: 檢查代碼 (Checkout)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
-      # 升級至 v5 (v5 已正式支援 Node 20+ 並最佳化 Node 24 相容性)
+      # 關鍵修正 2: 明確指定 Node 24 版本的 Setup Python
       - name: 設定 Python 環境
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.9'
+          # 強制檢查最新版本
+          update-environment: true
 
       - name: 安裝必要套件
         run: |
@@ -40,5 +39,6 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Action Bot"
           git add exchange_rates.csv
+          # 使用台灣時間作為提交訊息
           git commit -m "Auto Update: $(date)" || exit 0
           git push
