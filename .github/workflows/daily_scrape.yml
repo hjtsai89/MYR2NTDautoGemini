@@ -1,37 +1,5 @@
-name: Daily Exchange Rate Scraper
-
-on:
-  schedule:
-    # 台灣時間 09:30 AM
-    - cron: '30 1 * * *'
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    permissions:
-      contents: write
-
-    steps:
-      # 關鍵修正 1: 升級到 actions/checkout@v4.2.2 (或更高) 
-      # 某些舊版 v4 仍會觸發警告，確保使用最新小版本
-      - name: 檢查代碼 (Checkout)
-        uses: actions/checkout@v4.2.2
-
-      # 關鍵修正 2: 明確指定 Node 24 版本的 Setup Python
-      - name: 設定 Python 環境
-        uses: actions/setup-python@v5.4.0
-        with:
-          python-version: '3.9'
-          # 強制檢查最新版本
-          update-environment: true
-
-      - name: 安裝必要套件
-        run: |
-          pip install pandas requests lxml beautifulsoup4
-
-      - name: 執行爬蟲腳本
+- name: 執行爬蟲腳本
+        id: run_scraper  # 加入 ID 以便後續步驟讀取輸出
         run: python scraper.py
 
       - name: 提交並儲存變更
@@ -39,6 +7,8 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Action Bot"
           git add exchange_rates.csv
-          # 使用台灣時間作為提交訊息
-          git commit -m "Auto Update: $(date)" || exit 0
+          
+          # 使用 steps.<id>.outputs 取得 Python 傳出的變數
+          # Commit 訊息會直接顯示匯率，例如：Auto Update [2026-04-09]: MYR/TWD = 7.1234
+          git commit -m "Auto Update [${{ steps.run_scraper.outputs.update_time }}]: MYR/TWD = ${{ steps.run_scraper.outputs.myr_twd }}" || exit 0
           git push
