@@ -1,69 +1,42 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta, timezone # 新增時區模組
+from datetime import datetime, timedelta, timezone
 import os
 import re
 
-def get_bot_rate():
-    """抓取台灣銀行 USD/TWD 賣出匯率"""
-    url = "https://rate.bot.com.tw/xrt?Lang=zh-TW"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        df = pd.read_html(response.text)[0]
-        usd_twd = df.iloc[0, 4]
-        return float(usd_twd)
-    except Exception as e:
-        print(f"台銀抓取失敗: {e}")
-        return None
-
-def get_hsbc_rate():
-    """抓取 HSBC Malaysia USD/MYR 即期買入匯率 (TT Buy)"""
-    url = "https://www.hsbc.com.my/investments/products/foreign-exchange/currency-rate/"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9'
-    }
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        rows = soup.find_all('tr')
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            if len(cells) >= 4:
-                if "USD" in cells[0].get_text():
-                    rate_text = cells[3].get_text(strip=True)
-                    rate_match = re.search(r"(\d+\.\d+)", rate_text)
-                    if rate_match:
-                        return float(rate_match.group(1))
-        return None
-    except Exception as e:
-        print(f"HSBC 抓取失敗: {e}")
-        return None
+# ... (保留之前的 get_bot_rate 和 get_hsbc_rate 函式) ...
 
 def main():
     twd_rate = get_bot_rate()
     myr_rate = get_hsbc_rate()
     
-    if twd_rate is None or myr_rate is None:
-        exit(1)
-
-    file_name = "exchange_rates.csv"
-    
-    # --- 修正時間為台灣時區 (UTC+8) ---
-    tz = timezone(timedelta(hours=8))
-    now = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
-    # -------------------------------
-
-    df_new = pd.DataFrame([[now, twd_rate, myr_rate]], columns=["Date", "USD_TWD", "USD_MYR_TTBuy"])
-    
-    if not os.path.isfile(file_name):
-        df_new.to_csv(file_name, index=False, encoding='utf-8-sig')
-    else:
-        df_new.to_csv(file_name, mode='a', header=False, index=False, encoding='utf-8-sig')
+    if twd_rate and myr_rate:
+        # 計算 1 台幣可以換多少馬幣 (TWD/MYR)
+        twd_to_myr = round(myr_rate / twd_rate, 5)
+        # 計算 1 馬幣可以換多少台幣 (MYR/TWD) -> 這是你要的新增欄位
+        myr_to_twd = round(twd_rate / myr_rate, 5)
         
-    print(f"✅ 記錄成功 (TW Time): {now}")
+        tz = timezone(timedelta(hours=8))
+        now = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        
+        file_name = "exchange_rates.csv"
+        # 欄位包含：時間, 台銀賣出, HSBC買入, 台幣換馬幣, 馬幣換台幣
+        new_data = pd.DataFrame([[now, twd_rate, myr_rate, twd_to_myr, myr_to_twd]], 
+                                columns=["Date", "USD_TWD", "USD_MYR_TTBuy", "TWD_MYR", "MYR_TWD"])
+        
+        if not os.path.isfile(file_name):
+            new_data.to_csv(file_name, index=False, encoding='utf-8-sig')
+        else:
+            new_data.to_csv(file_name, mode='a', header=False, index=False, encoding='utf-8-sig')
+        
+        # --- 關鍵修改：將結果傳遞給 GitHub Actions ---
+        if 'GITHUB_OUTPUT' in os.environ:
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write(f"myr_twd={myr_to_twd}\n")
+                f.write(f"update_time={now}\n")
+        
+        print(f"✅ 記錄成功: MYR/TWD = {myr_to_twd}")
 
 if __name__ == "__main__":
     main()
