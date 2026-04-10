@@ -44,7 +44,7 @@ def main():
         
         file_name = "exchange_rates.csv"
         new_data = pd.DataFrame([[now, twd_rate, myr_rate,  myr_to_twd, twd_to_myr]], 
-                                columns=["Date", "USD_TWD", "USD_MYR_TTBuy", "MYR_TWD","TWD/MYR"])
+                                columns=["Date", "USD/TWD", "USD/MYR", "MYR/TWD","TWD/MYR"])
         
         if not os.path.isfile(file_name):
             new_data.to_csv(file_name, index=False, encoding='utf-8-sig')
