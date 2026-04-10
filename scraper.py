@@ -43,8 +43,8 @@ def main():
         now = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
         
         file_name = "exchange_rates.csv"
-        new_data = pd.DataFrame([[now, twd_rate, myr_rate, twd_to_myr, myr_to_twd]], 
-                                columns=["Date", "USD_TWD", "USD_MYR_TTBuy", "TWD_MYR", "MYR_TWD"])
+        new_data = pd.DataFrame([[now, twd_rate, myr_rate,  myr_to_twd]], 
+                                columns=["Date", "USD_TWD", "USD_MYR_TTBuy",  "MYR_TWD"])
         
         if not os.path.isfile(file_name):
             new_data.to_csv(file_name, index=False, encoding='utf-8-sig')
