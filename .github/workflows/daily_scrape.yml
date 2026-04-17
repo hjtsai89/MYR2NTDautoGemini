@@ -3,8 +3,8 @@ name: Daily Exchange Rate Scraper
 on:
   schedule:
     # 每天執行兩次 (台灣時間 09:00 與 14:00)
-    - cron: '0 1 * * *'  # UTC 01:00 (TW 09:00)
-    - cron: '0 6 * * *'  # UTC 06:00 (TW 14:00)
+    - cron: '0 0 * * *'  # UTC 00:00 (TW 08:00)
+    - cron: '0 4 * * *'  # UTC 04:00 (TW 12:00)
   workflow_dispatch:
 jobs:
   build:
