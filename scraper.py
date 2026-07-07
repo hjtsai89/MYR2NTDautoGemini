@@ -13,6 +13,9 @@ def get_bot_rate():
     try:
         response = requests.get(url, headers=headers, timeout=15)
         print(f"[BOT] status={response.status_code}, len={len(response.text)}")
+        # 內容太短時（可能是地區限制/攔截頁），印出來看看到底回了什麼
+        if len(response.text) < 5000:
+            print(f"[BOT] 內容過短，完整內容: {response.text!r}")
         # 修掉 FutureWarning：literal html 要包成 StringIO
         df = pd.read_html(StringIO(response.text))[0]
         rate = float(df.iloc[0, 4])
