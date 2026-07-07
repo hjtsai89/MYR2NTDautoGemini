@@ -117,8 +117,8 @@ def main():
         now = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
 
         file_name = "exchange_rates.csv"
-        new_data = pd.DataFrame([[now, twd_rate, twd_source, myr_rate, myr_to_twd, twd_to_myr]],
-                                 columns=["Date", "USD/TWD", "USD/TWD_Source", "USD/MYR", "MYR/TWD", "TWD/MYR"])
+        new_data = pd.DataFrame([[now, twd_rate, myr_rate, myr_to_twd, twd_to_myr, twd_source]],
+                                 columns=["Date", "USD/TWD", "USD/MYR", "MYR/TWD", "TWD/MYR", "USD/TWD_Source"])
 
         if not os.path.isfile(file_name):
             new_data.to_csv(file_name, index=False, encoding='utf-8-sig')
