@@ -1,4 +1,4 @@
-name: Daily Exchange Rate Scraper
+name: Daily Exchange Rate Scraper Gemini
 
 on:
   schedule:
