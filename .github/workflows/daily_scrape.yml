@@ -22,7 +22,7 @@ jobs:
           python-version: '3.9'
 
       - name: 安裝必要套件
-        run: pip install pandas requests lxml beautifulsoup4
+        run: pip install pandas requests lxml beautifulsoup4 html5lib
 
       - name: 執行爬蟲腳本
         id: run_scraper # 重要：設定 ID 以供後續步驟讀取
