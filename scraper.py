@@ -8,19 +8,26 @@ import re
 
 
 def get_bot_rate():
-    url = "https://rate.bot.com.tw/xrt?Lang=zh-TW"
+    # rate.bot.com.tw 的網頁本體已加上防爬蟲 JS Challenge，requests 無法通過。
+    # 改用官方提供、給程式化下載用的 CSV 端點，不會觸發該防護機制。
+    url = "https://rate.bot.com.tw/xrt/flcsv/0/day"
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
     try:
         response = requests.get(url, headers=headers, timeout=15)
         print(f"[BOT] status={response.status_code}, len={len(response.text)}")
-        # 內容太短時（可能是地區限制/攔截頁），印出來看看到底回了什麼
-        if len(response.text) < 5000:
+        if len(response.text) < 500:
             print(f"[BOT] 內容過短，完整內容: {response.text!r}")
-        # 修掉 FutureWarning：literal html 要包成 StringIO
-        df = pd.read_html(StringIO(response.text))[0]
-        rate = float(df.iloc[0, 4])
-        print(f"[BOT] 取得 USD/TWD = {rate}")
-        return rate
+
+        # CSV 每一行格式: 幣別,本行買入,現金,即期,遠期10天,...,本行賣出,現金,即期,遠期10天,...
+        # 即期買入價在第 4 欄 (index 3)
+        for line in response.text.strip().splitlines():
+            parts = line.split(',')
+            if parts and parts[0] == 'USD':
+                rate = float(parts[3])
+                print(f"[BOT] 取得 USD/TWD (即期買入) = {rate}")
+                return rate
+        print("[BOT] CSV 裡找不到 USD 這一行")
+        return None
     except Exception as e:
         print(f"[BOT] 抓取失敗: {type(e).__name__}: {e}")
         return None
