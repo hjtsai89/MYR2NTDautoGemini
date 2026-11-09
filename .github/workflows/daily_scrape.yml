@@ -19,7 +19,7 @@ jobs:
       - name: 設定 Python 環境
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: 安裝必要套件
         run: pip install pandas requests lxml beautifulsoup4 html5lib
